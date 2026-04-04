@@ -1,4 +1,4 @@
-use anyhow::{Context, Ok, Result};
+use anyhow::{Context, Result};
 use std::io::Write;
 #[allow(unused_imports)]
 use std::net::TcpListener;
@@ -9,7 +9,7 @@ fn main() -> Result<()> {
 
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => {
+            Ok(mut stream) => {
                 stream
                     .write_fmt(format_args!("HTTP/1.1 200 OK\r\n\r\n"))
                     .context("write to stream")?;
