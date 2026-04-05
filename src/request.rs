@@ -1,7 +1,5 @@
-use anyhow::Result;
-use std::str::FromStr;
-
-pub const VERSION: &'static str = "HTTP/1.1";
+use anyhow::{Context, Result};
+use std::{io::BufRead, str::FromStr};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum HttpMethod {
@@ -24,16 +22,34 @@ impl FromStr for HttpMethod {
 #[derive(Debug)]
 pub struct Request {
     pub method: HttpMethod,
-    pub target: String,
-    pub version: &'static str,
+    pub path: String,
+    pub version: String,
 }
 
 impl Request {
-    pub fn new(method: HttpMethod, target: String) -> Self {
+    pub fn new(method: HttpMethod, path: String, version: String) -> Self {
         Self {
             method,
-            target,
-            version: VERSION, // in this excersice the version will not change
+            path,
+            version,
         }
+    }
+
+    pub fn read_from(mut reader: impl BufRead) -> Result<Self> {
+        let mut buffer = String::new();
+        reader.read_line(&mut buffer)?;
+        let mut parts = buffer.splitn(3, " ");
+        let method = parts
+            .next()
+            .context("should contain http method")?
+            .parse::<HttpMethod>()?;
+        let path = parts.next().context("should containe path")?.to_string();
+        let version = parts
+            .next()
+            .context("should contain version")?
+            .trim_end()
+            .to_string();
+
+        Ok(Self::new(method, path, version))
     }
 }
