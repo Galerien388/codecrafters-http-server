@@ -19,7 +19,7 @@ impl Display for StatusCode {
 
 pub struct Response {
     pub code: StatusCode,
-    pub headers: Option<Header>,
+    pub header: Header,
     pub body: Option<Vec<u8>>,
 }
 
@@ -28,7 +28,7 @@ impl Response {
         Self {
             code,
             body: None,
-            headers: None,
+            header: Header::new(),
         }
     }
 }
@@ -40,8 +40,8 @@ impl Response {
             .as_bytes()
             .to_vec();
 
-        if let Some(ref headers) = self.headers {
-            version.extend(headers.to_vec());
+        if !self.header.is_empty() {
+            version.extend(self.header.to_vec());
         }
 
         version.extend("\r\n".as_bytes());
@@ -58,7 +58,7 @@ impl Response {
     }
 
     pub fn with_headers(mut self, headers: Header) -> Self {
-        self.headers = Some(headers);
+        self.header = headers;
         self
     }
 }

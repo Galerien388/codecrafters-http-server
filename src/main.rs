@@ -3,16 +3,13 @@ use std::io::{BufReader, Write};
 #[allow(unused_imports)]
 use std::net::TcpListener;
 
-use crate::{
-    handler::*,
-    request::Request,
-    response::{Response, StatusCode},
-};
+use crate::request::Request;
 
 mod handler;
 mod headers;
 mod request;
 mod response;
+mod routes;
 
 fn main() -> Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
@@ -24,20 +21,8 @@ fn main() -> Result<()> {
                 let reader = BufReader::new(&stream);
                 let request = Request::read_from(reader)?;
                 dbg!(&request);
-
-                let reponse = match request.path.as_str() {
-                    _ if request.path.starts_with("/echo") => {
-                        let echo = request
-                            .path
-                            .strip_prefix("/echo/")
-                            .context("we a sure it containts /echo")?;
-                        handler::echo(echo)
-                    }
-                    "/" => Response::new(StatusCode::Ok),
-                    _ => Response::new(StatusCode::NotFound),
-                };
-
-                stream.write_all(&reponse.to_http_bytes())?;
+                let response = routes::router(&request)?;
+                stream.write_all(&response.to_http_bytes())?;
             }
             Err(e) => {
                 println!("error: {}", e);
