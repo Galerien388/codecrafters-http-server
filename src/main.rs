@@ -37,7 +37,7 @@ fn main() -> Result<()> {
                     _ => Response::new(StatusCode::NotFound),
                 };
 
-                stream.write(&reponse.to_http_bytes())?;
+                stream.write_all(&reponse.to_http_bytes())?;
             }
             Err(e) => {
                 println!("error: {}", e);

@@ -36,7 +36,7 @@ impl Response {
 impl Response {
     pub fn to_http_bytes(&self) -> Vec<u8> {
         let nr = self.code.clone() as u16;
-        let mut version = format!("HTTP/1.1 {} {}\r\n\r\n", nr, &self.code)
+        let mut version = format!("HTTP/1.1 {} {}\r\n", nr, &self.code)
             .as_bytes()
             .to_vec();
 
