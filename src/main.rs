@@ -4,18 +4,17 @@ use std::io::{BufReader, Write};
 use std::net::TcpListener;
 
 use crate::{
-    headers::Header,
-    request::{HttpMethod, Request},
+    handler::*,
+    request::Request,
     response::{Response, StatusCode},
 };
 
-mod handlers;
+mod handler;
 mod headers;
 mod request;
 mod response;
 
 fn main() -> Result<()> {
-    // HTTP/1.1 200 OK\r\n\r\n
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
     println!("Server is running on port 4221");
 
@@ -32,14 +31,7 @@ fn main() -> Result<()> {
                             .path
                             .strip_suffix("/echo/")
                             .context("we a sure it containts /echo")?;
-                        let mut response = Response::new(StatusCode::Ok);
-                        let body = echo.as_bytes();
-                        response.with_body(body);
-                        response.headers.add_header("Content-Type", "text/plain");
-                        response
-                            .headers
-                            .add_header("Content-Lenght", format!("{}", body.len()));
-                        unimplemented!()
+                        handler::echo(echo)
                     }
                     "/" => Response::new(StatusCode::Ok),
                     _ => Response::new(StatusCode::NotFound),
