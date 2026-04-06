@@ -29,7 +29,7 @@ fn main() -> Result<()> {
                     "/" if request.path.starts_with("/echo") => {
                         let echo = request
                             .path
-                            .strip_suffix("/echo/")
+                            .strip_prefix("/echo/")
                             .context("we a sure it containts /echo")?;
                         handler::echo(echo)
                     }
