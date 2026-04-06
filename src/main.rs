@@ -26,7 +26,7 @@ fn main() -> Result<()> {
                 dbg!(&request);
 
                 let reponse = match request.path.as_str() {
-                    "/" if request.path.starts_with("/echo") => {
+                    _ if request.path.starts_with("/echo") => {
                         let echo = request
                             .path
                             .strip_prefix("/echo/")
