@@ -44,6 +44,7 @@ impl Response {
             version.extend(headers.to_vec());
         }
 
+        version.extend("\r\n".as_bytes());
         if let Some(ref body) = self.body {
             version.extend(body);
         }

@@ -30,7 +30,6 @@ impl Header {
                 buffer.extend(format!("{}: {}\r\n", k, s).bytes());
             }
         }
-        buffer.extend("\r\n".as_bytes());
         buffer
     }
 
