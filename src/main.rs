@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::io::{BufReader, Write};
 #[allow(unused_imports)]
 use std::net::TcpListener;
@@ -22,7 +22,7 @@ fn main() -> Result<()> {
                 let request = Request::read_from(reader)?;
                 dbg!(&request);
                 let response = routes::router(&request)?;
-                stream.write_all(&response.to_http_bytes())?;
+                stream.write_all(&response.to_http_bytes()?)?;
             }
             Err(e) => {
                 println!("error: {}", e);

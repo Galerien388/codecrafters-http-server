@@ -1,10 +1,12 @@
+use anyhow::Result;
 use std::collections::HashMap;
+use std::io::Write;
 
-pub struct Header {
+pub struct Headers {
     headers: HashMap<String, Vec<String>>,
 }
 
-impl Header {
+impl Headers {
     pub fn new() -> Self {
         Self {
             headers: HashMap::new(),
@@ -18,22 +20,20 @@ impl Header {
             .push(value.into());
     }
 
-    pub fn to_vec(&self) -> Vec<u8> {
-        let mut buffer = Vec::<u8>::new();
+    pub fn write_to(&self, mut buffer: impl Write) -> Result<()> {
         for (k, values) in &self.headers {
-            if k.to_lowercase() == "set-cookie" {
+            if k.eq_ignore_ascii_case("set-cookie") {
                 for v in values {
-                    buffer.extend(format!("{}: {}\r\n", k, v).bytes());
+                    write!(buffer, "{}: {}\r\n", k, v)?;
                 }
             } else {
-                let s = values.join(",");
-                buffer.extend(format!("{}: {}\r\n", k, s).bytes());
+                write!(buffer, "{}: {}\r\n", k, values.join(","))?;
             }
         }
-        buffer
+        Ok(())
     }
 
     pub fn is_empty(&self) -> bool {
-        return self.headers.is_empty();
+        self.headers.is_empty()
     }
 }
