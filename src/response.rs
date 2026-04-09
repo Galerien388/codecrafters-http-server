@@ -9,6 +9,15 @@ pub enum StatusCode {
     NotFound = 404,
 }
 
+impl StatusCode {
+    pub fn as_u16(&self) -> u16 {
+        match self {
+            StatusCode::Ok => 200,
+            StatusCode::NotFound => 404,
+        }
+    }
+}
+
 impl Display for StatusCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -18,9 +27,10 @@ impl Display for StatusCode {
     }
 }
 
+#[derive(Debug)]
 pub struct Response {
     pub code: StatusCode,
-    pub header: Headers,
+    pub headers: Headers,
     pub body: Vec<u8>,
 }
 
@@ -29,7 +39,7 @@ impl Response {
         Self {
             code,
             body: Vec::new(),
-            header: Headers::new(),
+            headers: Headers::new(),
         }
     }
 }
@@ -38,12 +48,15 @@ impl Response {
     pub fn to_http_bytes(&self) -> Result<Vec<u8>> {
         let mut buffer = Vec::<u8>::new();
 
-        let nr = self.code.clone() as u16;
+        write!(
+            buffer,
+            "HTTP/1.1 {} {}\r\n",
+            &self.code.as_u16(),
+            &self.code
+        )?;
 
-        write!(buffer, "HTTP/1.1 {} {}\r\n", nr, &self.code)?;
-
-        if !self.header.is_empty() {
-            self.header.write_to(&mut buffer)?;
+        if !self.headers.is_empty() {
+            self.headers.write_to(&mut buffer)?;
         }
 
         write!(buffer, "\r\n")?;
@@ -56,17 +69,24 @@ impl Response {
     }
 
     pub fn with_header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
-        self.header.add_header(key, value);
+        self.headers.add_header(key, value);
         self
     }
 
+    // !! this sets the Content-Length
     pub fn with_body(mut self, body: Vec<u8>) -> Self {
+        self.headers
+            .add_header("Content-Length", body.len().to_string());
         self.body = body;
         self
     }
 
-    pub fn with_headers(mut self, headers: Headers) -> Self {
-        self.header = headers;
+    pub fn _with_headers(mut self, headers: Headers) -> Self {
+        self.headers = headers;
         self
+    }
+
+    pub fn _set_header(&mut self, key: impl Into<String>, value: impl Into<String>) {
+        self.headers.insert(key.into().to_ascii_lowercase(), value);
     }
 }

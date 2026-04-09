@@ -18,8 +18,8 @@ fn main() -> Result<()> {
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
-                let reader = BufReader::new(&stream);
-                let request = Request::read_from(reader)?;
+                let mut reader = BufReader::new(&stream);
+                let request = Request::read_from(&mut reader)?;
                 dbg!(&request);
                 let response = routes::router(&request)?;
                 stream.write_all(&response.to_http_bytes()?)?;
