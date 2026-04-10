@@ -54,7 +54,7 @@ pub fn get_file(req: &Request) -> Result<Response> {
             }
             let mut response = Response::new(StatusCode::Ok)
                 .with_header("Content-Type", "application/octet-stream")
-                .with_header("Content-Lenght", size.to_string());
+                .with_header("Content-Length", size.to_string());
             let mut limit_file = file.take(800_000);
             io::copy(&mut limit_file, &mut response.body)?;
             Ok(response)
