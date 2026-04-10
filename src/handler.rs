@@ -32,6 +32,8 @@ pub fn user_agent(req: &Request) -> Result<Response> {
         .map(|b| b.as_str())
         .unwrap_or("");
 
+    eprint!("body: {body}");
+
     Ok(Response::new(response::StatusCode::Ok)
         .with_header("Content-Type", "text/plain")
         .with_body(body.as_bytes().to_vec()))
