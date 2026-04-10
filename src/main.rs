@@ -16,7 +16,6 @@ mod routes;
 
 fn main() -> Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
-
     println!("Server is running on port 4221");
 
     for stream in listener.incoming() {
@@ -26,7 +25,6 @@ fn main() -> Result<()> {
             }
         });
     }
-
     Ok(())
 }
 

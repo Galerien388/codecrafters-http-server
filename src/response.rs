@@ -6,14 +6,22 @@ use anyhow::Result;
 #[derive(Debug, Clone)]
 pub enum StatusCode {
     Ok = 200,
+    Created = 201,
     NotFound = 404,
+    MethodNotAllowed = 405,
+    ContentTooLarge = 413,
+    InternalServerError = 500,
 }
 
 impl StatusCode {
     pub fn as_u16(&self) -> u16 {
         match self {
             StatusCode::Ok => 200,
+            StatusCode::Created => 201,
             StatusCode::NotFound => 404,
+            StatusCode::MethodNotAllowed => 405,
+            StatusCode::ContentTooLarge => 413,
+            StatusCode::InternalServerError => 500,
         }
     }
 }
@@ -22,7 +30,11 @@ impl Display for StatusCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             StatusCode::Ok => write!(f, "OK"),
+            StatusCode::Created => write!(f, "Created"),
             StatusCode::NotFound => write!(f, "Not Found"),
+            StatusCode::MethodNotAllowed => write!(f, "Method Not Allowed"),
+            StatusCode::ContentTooLarge => write!(f, "Content To Large"),
+            StatusCode::InternalServerError => write!(f, "internal server error"),
         }
     }
 }

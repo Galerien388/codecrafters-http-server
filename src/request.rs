@@ -1,5 +1,9 @@
 use anyhow::{Context, Result};
-use std::{convert::AsRef, io::BufRead, str::FromStr};
+use std::{
+    convert::AsRef,
+    io::{BufRead, Read},
+    str::FromStr,
+};
 
 use crate::headers::Headers;
 
@@ -64,7 +68,8 @@ impl Request {
         // Reading the Body
         if n != 0 {
             request.body.resize(n, 0);
-            reader
+            let mut limit_reader = reader.take(n as u64);
+            limit_reader
                 .read_exact(&mut request.body)
                 .context("reading request body")?;
         }
