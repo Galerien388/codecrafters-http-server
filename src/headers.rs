@@ -34,7 +34,7 @@ impl Headers {
                     if i > 0 {
                         write!(buffer, ",")?;
                     }
-                    write!(buffer, "{}", v)?
+                    write!(buffer, "{}\r\n", v)?
                 }
             }
         }
