@@ -22,7 +22,8 @@ pub fn user_agent(req: &Request) -> Result<Response> {
         .get_header("user-agent")
         .ok_or(anyhow::anyhow!("user-agent header is missing"))?
         .first()
-        .unwrap_or(&"".to_string());
+        .map(|b| b.as_str())
+        .unwrap_or("");
 
     Ok(Response::new(response::StatusCode::Ok)
         .with_header("Content-Type", "text/plain")
