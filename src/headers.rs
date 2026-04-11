@@ -27,8 +27,6 @@ impl Headers {
                     write!(buffer, "{}: {}\r\n", k, v)?;
                 }
             } else {
-                // write!(buffer, "{}: {}\r\n", k, values.join(","))?;  // join allocate String -
-                // NOT GOOD HERE
                 write!(buffer, "{}:", k)?;
                 for (i, v) in values.iter().enumerate() {
                     if i > 0 {

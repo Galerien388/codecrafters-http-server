@@ -18,21 +18,13 @@ pub fn echo(req: &Request) -> Result<Response> {
         .context("path should start with /echo/")?;
 
     let resp = Response::new(StatusCode::Ok);
-
     let resp = match req
         .get_header("accept-encoding")
         .map(|v| v.contains(&"gzip".to_string()))
         .unwrap_or(false)
     {
-        true => {
-            let r = resp.with_header("content-encoding", "gzip");
-            println!("TRUE {:?}", r);
-            r
-        }
-        false => {
-            println!("FALSE {:?}", resp);
-            resp
-        }
+        true => resp.with_header("content-encoding", "gzip"),
+        false => resp,
     };
 
     let body = echo.as_bytes().to_vec();
@@ -48,8 +40,6 @@ pub fn user_agent(req: &Request) -> Result<Response> {
         .first()
         .map(|b| b.as_str())
         .unwrap_or("");
-
-    eprint!("body: {body}");
 
     Ok(Response::new(response::StatusCode::Ok)
         .with_header("content-type", "text/plain")

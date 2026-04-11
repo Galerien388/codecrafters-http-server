@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use std::{
     convert::AsRef,
     io::{BufRead, Read},
+    ops::Deref,
     str::FromStr,
 };
 
@@ -59,11 +60,20 @@ impl Request {
             if line.trim_end().is_empty() {
                 break;
             }
-            let (key, value) = Self::read_request_header(&line)?;
-            if key.eq_ignore_ascii_case("Content-Length") {
-                n = value.parse()?;
+            let (key, values) = Self::read_request_header(&line)?;
+
+            if key.eq_ignore_ascii_case("content-length") {
+                n = values
+                    .first()
+                    .copied()
+                    .context("content-length should contain length")?
+                    .parse::<usize>()
+                    .context("invalid content length")?
             }
-            Self::add_header(&mut request, key, value);
+
+            values.iter().for_each(|&v| {
+                Self::add_header(&mut request, key, v);
+            });
         }
         // Reading the Body
         if n != 0 {
@@ -93,16 +103,15 @@ impl Request {
         Ok(Self::new(method, path, version))
     }
 
-    fn read_request_header(line: &str) -> Result<(&str, &str)> {
+    fn read_request_header(line: &str) -> Result<(&str, Vec<&str>)> {
         let (key, value) = line
             .split_once(":")
             .context("invalid header: header should contain :")?;
-        Ok((key.trim(), value.trim()))
+        let values: Vec<&str> = value.split(",").map(|v| v.trim()).collect();
+        Ok((key.trim(), values))
     }
 
     fn add_header(&mut self, key: impl Into<String>, value: impl Into<String>) {
-        let key = key.into().to_ascii_lowercase();
-        let value = value.into().to_ascii_lowercase();
         self.headers.add_header(key, value);
     }
 
