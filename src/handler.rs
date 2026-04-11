@@ -29,7 +29,7 @@ pub fn echo(req: &Request) -> Result<Response> {
             println!("TRUE {:?}", r);
             r
         }
-        false => resp.with_header("content-encoding", "invalid-encoding"),
+        false => resp,
     };
 
     let body = echo.as_bytes().to_vec();
