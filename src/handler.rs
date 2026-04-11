@@ -23,13 +23,12 @@ pub fn echo(req: &Request) -> Result<Response> {
     let resp = Response::new(StatusCode::Ok);
     let resp = match req
         .get_header("accept-encoding")
-        .map(|v| v.contains(&"gzip".to_string()))
+        .map(|v| v.iter().any(|s| s.eq_ignore_ascii_case("gzip")))
         .unwrap_or(false)
     {
         true => {
             let mut z = GzEncoder::new(Vec::new(), Compression::default());
-            z.write(echo.as_bytes())
-                .context("couldn't write to gzip encoder")?;
+            z.write(&body).context("couldn't write to gzip encoder")?;
             let compressed_body = z.finish().context("couldn't compresse body")?;
             resp.with_header("content-encoding", "gzip")
                 .with_body(compressed_body)
@@ -37,7 +36,7 @@ pub fn echo(req: &Request) -> Result<Response> {
         false => resp.with_body(body),
     };
 
-    Ok(resp.with_header("Content-Type", "text/plain"))
+    Ok(resp.with_header("content-Type", "text/plain"))
 }
 
 pub fn user_agent(req: &Request) -> Result<Response> {
