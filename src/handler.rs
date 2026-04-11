@@ -10,6 +10,7 @@ use crate::{
     response::{self, Response, StatusCode},
 };
 use anyhow::{Context, Result};
+use flate2::{Compression, write::ZlibEncoder};
 
 pub fn echo(req: &Request) -> Result<Response> {
     let echo = req
@@ -17,20 +18,27 @@ pub fn echo(req: &Request) -> Result<Response> {
         .strip_prefix("/echo/")
         .context("path should start with /echo/")?;
 
+    let body = echo.as_bytes().to_vec();
+
     let resp = Response::new(StatusCode::Ok);
     let resp = match req
         .get_header("accept-encoding")
         .map(|v| v.contains(&"gzip".to_string()))
         .unwrap_or(false)
     {
-        true => resp.with_header("content-encoding", "gzip"),
-        false => resp,
+        true => {
+            let buffer = Vec::<u8>::new();
+            let mut z = ZlibEncoder::new(buffer, Compression::default());
+            z.write(&req.body)
+                .context("couldn't write to gzip encoder")?;
+            let compressed_body = z.finish().context("couldn't compresse body")?;
+            resp.with_header("content-encoding", "gzip")
+                .with_body(compressed_body)
+        }
+        false => resp.with_body(body),
     };
 
-    let body = echo.as_bytes().to_vec();
-    Ok(resp
-        .with_header("Content-Type", "text/plain")
-        .with_body(body))
+    Ok(resp.with_header("Content-Type", "text/plain"))
 }
 
 pub fn user_agent(req: &Request) -> Result<Response> {
