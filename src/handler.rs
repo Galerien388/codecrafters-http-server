@@ -33,7 +33,9 @@ pub fn echo(req: &Request) -> Result<Response> {
     };
 
     let body = echo.as_bytes().to_vec();
-    Ok(resp.with_body(body))
+    Ok(resp
+        .with_header("Content-Type", "text/plain")
+        .with_body(body))
 }
 
 pub fn user_agent(req: &Request) -> Result<Response> {
