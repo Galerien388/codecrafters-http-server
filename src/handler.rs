@@ -29,7 +29,10 @@ pub fn echo(req: &Request) -> Result<Response> {
             println!("TRUE {:?}", r);
             r
         }
-        false => resp,
+        false => {
+            println!("FALSE {:?}", resp);
+            resp
+        }
     };
 
     let body = echo.as_bytes().to_vec();
