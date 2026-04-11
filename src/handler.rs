@@ -10,7 +10,7 @@ use crate::{
     response::{self, Response, StatusCode},
 };
 use anyhow::{Context, Result};
-use flate2::{Compression, write::ZlibEncoder};
+use flate2::{Compression, write::GzEncoder};
 
 pub fn echo(req: &Request) -> Result<Response> {
     let echo = req
@@ -27,9 +27,8 @@ pub fn echo(req: &Request) -> Result<Response> {
         .unwrap_or(false)
     {
         true => {
-            let buffer = Vec::<u8>::new();
-            let mut z = ZlibEncoder::new(buffer, Compression::default());
-            z.write(&req.body)
+            let mut z = GzEncoder::new(Vec::new(), Compression::default());
+            z.write(echo.as_bytes())
                 .context("couldn't write to gzip encoder")?;
             let compressed_body = z.finish().context("couldn't compresse body")?;
             resp.with_header("content-encoding", "gzip")
