@@ -17,11 +17,23 @@ pub fn echo(req: &Request) -> Result<Response> {
         .strip_prefix("/echo/")
         .context("path should start with /echo/")?;
 
-    let body = echo.as_bytes().to_vec();
+    let resp = Response::new(StatusCode::Ok);
 
-    Ok(Response::new(response::StatusCode::Ok)
-        .with_header("Content-Type", "text/plain")
-        .with_body(body))
+    let resp = match req
+        .get_header("accept-encoding")
+        .map(|v| v.contains(&"gzip".to_string()))
+        .unwrap_or(false)
+    {
+        true => {
+            let r = resp.with_header("content-encoding", "gzip");
+            println!("TRUE {:?}", r);
+            r
+        }
+        false => resp.with_header("content-encoding", "invalid-encoding"),
+    };
+
+    let body = echo.as_bytes().to_vec();
+    Ok(resp.with_body(body))
 }
 
 pub fn user_agent(req: &Request) -> Result<Response> {
@@ -35,7 +47,7 @@ pub fn user_agent(req: &Request) -> Result<Response> {
     eprint!("body: {body}");
 
     Ok(Response::new(response::StatusCode::Ok)
-        .with_header("Content-Type", "text/plain")
+        .with_header("content-type", "text/plain")
         .with_body(body.as_bytes().to_vec()))
 }
 
@@ -53,8 +65,8 @@ pub fn get_file(req: &Request) -> Result<Response> {
                 return Ok(Response::new(StatusCode::ContentTooLarge));
             }
             let mut response = Response::new(StatusCode::Ok)
-                .with_header("Content-Type", "application/octet-stream")
-                .with_header("Content-Length", size.to_string());
+                .with_header("content-type", "application/octet-stream")
+                .with_header("content-length", size.to_string());
             let mut limit_file = file.take(800_000);
             io::copy(&mut limit_file, &mut response.body)?;
             Ok(response)

@@ -101,10 +101,19 @@ impl Request {
     }
 
     fn add_header(&mut self, key: impl Into<String>, value: impl Into<String>) {
+        let key = key.into().to_ascii_lowercase();
+        let value = value.into().to_ascii_lowercase();
         self.headers.add_header(key, value);
     }
 
     pub fn get_header(&self, key: impl AsRef<str>) -> Option<&[String]> {
         self.headers.get(key).map(|v| v.as_slice())
+    }
+
+    pub fn get_header_value(&self, key: impl AsRef<str>) -> Option<&str> {
+        self.headers
+            .get(key)
+            .map_or_else(|| None, |v| v.first())
+            .map(|v| v.as_str())
     }
 }
