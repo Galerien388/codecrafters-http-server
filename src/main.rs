@@ -6,7 +6,7 @@ use std::{
     net::TcpStream,
 };
 
-use crate::request::Request;
+use crate::{request::Request, response::Response};
 
 mod handler;
 mod headers;
@@ -29,23 +29,33 @@ fn main() -> Result<()> {
 }
 
 fn handle_connections(stream: Result<TcpStream, Error>) -> Result<()> {
-    let mut stream = stream?;
+    let stream = stream?;
+    let mut reader = BufReader::new(stream);
 
     loop {
-        let request = {
-            let mut reader = BufReader::new(&stream);
-            Request::read_from(&mut reader)?
-        };
-
+        let request = Request::read_from(&mut reader)?;
         dbg!(&request);
         let response = routes::router(&request)?;
-        stream.write_all(&response.to_http_bytes()?)?;
+        let (response, close) = check_close_connection(&request, response);
 
-        if request.get_header_value("connection").unwrap_or("") == "close" {
+        reader.get_mut().write_all(&response.to_http_bytes()?)?;
+        if close {
             break;
         }
     }
     Ok(())
+}
+
+fn check_close_connection(req: &Request, resp: Response) -> (Response, bool) {
+    if req
+        .get_header_value("connection")
+        .unwrap_or("")
+        .eq_ignore_ascii_case("close")
+    {
+        (resp.with_header("connection", "close"), true)
+    } else {
+        (resp, false)
+    }
 }
 
 // fn handle_connections(stream: Result<TcpStream, Error>) -> Result<()> {
